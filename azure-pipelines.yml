@@ -2,7 +2,7 @@ trigger:
 - master
 
 pool:
-  vmImage: Hosted VS2017
+  vmImage: 'Hosted VS2017'
   demands:
   - msbuild
   - visualstudio
@@ -26,7 +26,7 @@ steps:
     configuration: 'Release'
 
 - task: CopyFiles@2
-  displayName: 'Copy Files to artifact staging directory)'
+  displayName: 'Copy Files to artifact staging directory'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)'
     Contents: '**\bin\Release\**'
