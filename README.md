@@ -1,4 +1,5 @@
 # Internet of Powershell (IoPS)
+[![Build Status](https://scholden.visualstudio.com/IoPS/_apis/build/status/ScottHolden.IoPS?branchName=master)](https://scholden.visualstudio.com/IoPS/_build/latest?definitionId=26&branchName=master)  
 This is a quick proof a concept adapter for allowing IoT Hub to execute curated Powershell scripts on devices via direct method.
 
 ## To Run In Interactive Mode

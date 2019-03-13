@@ -26,7 +26,7 @@ steps:
   displayName: 'Copy Files to artifact staging directory'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)'
-    Contents: '**\bin\Release\**'
+    Contents: 'IoPS\bin\Release\**'
     TargetFolder: '$(build.artifactstagingdirectory)'
 
 - task: PublishBuildArtifacts@1
