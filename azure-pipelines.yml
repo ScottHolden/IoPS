@@ -1,0 +1,39 @@
+trigger:
+- master
+
+pool:
+  vmImage: Hosted VS2017
+  demands:
+  - msbuild
+  - visualstudio
+
+steps:
+- task: NuGetToolInstaller@0
+  displayName: 'Use NuGet 4.x'
+  inputs:
+    versionSpec: 4.x
+
+- task: NuGetCommand@2
+  displayName: 'NuGet restore'
+  inputs:
+    restoreSolution: 'IoPS.sln'
+
+- task: VSBuild@1
+  displayName: 'Build solution IoPS.sln'
+  inputs:
+    solution: 'IoPS.sln'
+    platform: 'Any CPU'
+    configuration: 'Release'
+
+- task: CopyFiles@2
+  displayName: 'Copy Files to artifact staging directory)'
+  inputs:
+    SourceFolder: '$(system.defaultworkingdirectory)'
+    Contents: '**\bin\Release\**'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish artifact'
+  inputs:
+    ArtifactName: 'IoPSRelease'
+    PathtoPublish: '$(build.artifactstagingdirectory)'
