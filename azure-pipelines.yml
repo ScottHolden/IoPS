@@ -2,10 +2,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'Hosted VS2017'
-  demands:
-  - msbuild
-  - visualstudio
+  vmImage: 'windows-2019'
 
 steps:
 - task: NuGetToolInstaller@0
