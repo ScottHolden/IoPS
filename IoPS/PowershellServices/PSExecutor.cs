@@ -94,7 +94,7 @@ namespace IoPS
 					ExecutionPolicy policy;
 
 					if(string.IsNullOrWhiteSpace(parameters.ExecutionPolicy) ||
-						!Enum.TryParse(parameters.ExecutionPolicy, out policy))
+						!Enum.TryParse(parameters.ExecutionPolicy, true, out policy))
 					{
 						policy = DefaultExecutionPolicy;
 					}
