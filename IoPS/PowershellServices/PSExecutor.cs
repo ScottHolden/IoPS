@@ -13,6 +13,7 @@ namespace IoPS
 {
 	public class PSExecutor
 	{
+		private const ExecutionPolicy DefaultExecutionPolicy = ExecutionPolicy.RemoteSigned;
 		private static readonly Regex VaildPSScriptName = new Regex(@"^[a-z0-9\-.]+\.ps1$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
 		private readonly string _scriptPath;
@@ -90,9 +91,17 @@ namespace IoPS
 				{
 					runspace.Open();
 
-					_logger.Information("Setting Execution Policy for process");
+					ExecutionPolicy policy;
 
-					runspaceInvoke.Invoke("Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned");
+					if(string.IsNullOrWhiteSpace(parameters.ExecutionPolicy) ||
+						!Enum.TryParse(parameters.ExecutionPolicy, out policy))
+					{
+						policy = DefaultExecutionPolicy;
+					}
+
+					_logger.Information("Setting Execution Policy for process to {ExecutionPolicy}", policy);
+
+					runspaceInvoke.Invoke($"Set-ExecutionPolicy -Scope Process -ExecutionPolicy {policy}");
 
 					using (Pipeline pipeline = runspace.CreatePipeline())
 					{
