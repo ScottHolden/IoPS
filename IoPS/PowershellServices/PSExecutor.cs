@@ -1,46 +1,31 @@
-﻿using Microsoft.PowerShell;
-using Serilog;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
-using System.Text.RegularExpressions;
+using Serilog;
 
 namespace IoPS
 {
 	public class PSExecutor
 	{
-		private static readonly Regex VaildPSScriptName = new Regex(@"^[a-z0-9\-.]+\.ps1$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
-		private readonly string _scriptPath;
 		private readonly ILogger _logger;
+		private readonly IPSFileService _fileService;
 
-		public PSExecutor(ConfigurationService config, ILogger logger)
+		public PSExecutor(IPSFileService fileService, ILogger logger)
 		{
-			_scriptPath = config.GetSetting("scriptpath", Path.GetDirectoryName(typeof(PSExecutor).Assembly.Location));
 			_logger = logger.ForContext<PSExecutor>();
+			_fileService = fileService;
 		}
 
 		public string[] ListAvailableScripts()
 		{
-			_logger.Information("Listing available scripts");
+			string[] scripts = _fileService.ListAvailableScripts();
 
-			if (!Directory.Exists(_scriptPath))
+			if (scripts == null || scripts.Length < 1)
 			{
-				_logger.Error("Script path {Path} does not exist", _scriptPath);
-
-				return new[] { "Script directory does not exist" };
+				return new[] { "No scripts exist, or directory is missing" };
 			}
-
-			string[] scripts = Directory.EnumerateFiles(_scriptPath, "*.ps1")
-					.Select(Path.GetFileName)
-					.Where(x => VaildPSScriptName.IsMatch(x))
-					.ToArray();
-
-			_logger.Information("Found {ScriptCount} scripts", scripts.Length);
 
 			return scripts;
 		}
@@ -49,36 +34,7 @@ namespace IoPS
 		{
 			_logger.Information("Attemping to execute script");
 
-			if (!parameters.ScriptName.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase))
-			{
-				parameters.ScriptName += ".ps1";
-			}
-
-			if (!VaildPSScriptName.IsMatch(parameters.ScriptName))
-			{
-				_logger.Error("Script name was not vaild");
-
-				return new PSExecutionResults
-				{
-					Errors = new[] { "Script name is invalid" },
-					Completed = false
-				};
-			}
-
-			string safeFullPath = Directory.EnumerateFiles(_scriptPath, "*.ps1")
-											.Where(x => Path.GetFileName(x).Equals(parameters.ScriptName, StringComparison.OrdinalIgnoreCase))
-											.FirstOrDefault();
-
-			if (string.IsNullOrWhiteSpace(safeFullPath))
-			{
-				_logger.Error("Script file was not found");
-
-				return new PSExecutionResults
-				{
-					Errors = new[] { "Script file does not exist" },
-					Completed = false
-				};
-			}
+			(string safeFullPath, string pathErrors) = _fileService.GetScript(parameters.ScriptName);
 
 			_logger.Information("Setting up pipeline for {ScriptPath}", safeFullPath);
 
