@@ -15,16 +15,26 @@ This is a quick proof a concept adapter for allowing IoT Hub to execute curated 
 ## Calling Scripts From IoT Hub
 - There are 2 direct methods avalible to call:
   - `ListScripts` - This will list any ps1 files with the correct naming format in the script path. This direct method does not need a body.
-  - `ExecuteScript` - This will execute a target script. The payload body is made up of the `ScriptName` and an optional `Parameters` object:
-  ```
-  {
-    "ScriptName":"calc.ps1",
-    "Parameters":
+  - `ExecuteScript` - This will execute a target script. The payload body is made up of:
+    - `ScriptName` the name of the script to run
+    - *Optional* `ExecutionPolicy` string defining what execution policy mode to set for the process. By **default** this is set to `RemoteSigned`. Options are `Unrestricted`, `RemoteSigned`, `AllSigned`, `Restricted`, `Default`, `Bypass`, or `Undefined`
+    - *Optional* `Parameters` object containing paramaters that should be passed into the script
+    ```
     {
-      "a":2,
-      "b":3
+      "ScriptName":"echo.ps1"
     }
-  }
-  ```
-- The example above is the equivilant of executing `./calc.ps1 -a 2 -b 3`
+    ```
+    - Just passing in the script name is the equivilant of executing `./echo.ps1` with execution policy mode `RemoteSigned`
+    ```
+    {
+      "ScriptName":"calc.ps1",
+      "ExecutionPolicy":"Bypass",
+      "Parameters":
+      {
+        "a":2,
+        "b":3
+      }
+    }
+    ```
+    - The example above is the equivilant of executing `./calc.ps1 -a 2 -b 3` with execution policy mode `Bypass`
 - *Note: Write-Host won't work, you can use Write-Output or return a value to pass information back*

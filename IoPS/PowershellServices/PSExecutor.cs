@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management.Automation;
@@ -9,6 +10,7 @@ namespace IoPS
 {
 	public class PSExecutor
 	{
+		private const ExecutionPolicy DefaultExecutionPolicy = ExecutionPolicy.RemoteSigned;
 		private readonly ILogger _logger;
 		private readonly IPSFileService _fileService;
 
@@ -36,6 +38,24 @@ namespace IoPS
 
 			(string safeFullPath, string pathErrors) = _fileService.GetScript(parameters.ScriptName);
 
+			if (!string.IsNullOrWhiteSpace(pathErrors))
+			{
+				return new PSExecutionResults
+				{
+					Errors = new[] { pathErrors },
+					Completed = false
+				};
+			}
+
+			if (string.IsNullOrWhiteSpace(safeFullPath))
+			{
+				return new PSExecutionResults
+				{
+					Errors = new[] { "Unknown error, path is empty" },
+					Completed = false
+				};
+			}
+
 			_logger.Information("Setting up pipeline for {ScriptPath}", safeFullPath);
 
 			RunspaceConfiguration runspaceConfiguration = RunspaceConfiguration.Create();
@@ -46,9 +66,17 @@ namespace IoPS
 				{
 					runspace.Open();
 
-					_logger.Information("Setting Execution Policy for process");
+					ExecutionPolicy policy;
 
-					runspaceInvoke.Invoke("Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned");
+					if (string.IsNullOrWhiteSpace(parameters.ExecutionPolicy) ||
+						!Enum.TryParse(parameters.ExecutionPolicy, true, out policy))
+					{
+						policy = DefaultExecutionPolicy;
+					}
+
+					_logger.Information("Setting Execution Policy for process to {ExecutionPolicy}", policy);
+
+					runspaceInvoke.Invoke($"Set-ExecutionPolicy -Scope Process -ExecutionPolicy {policy}");
 
 					using (Pipeline pipeline = runspace.CreatePipeline())
 					{
