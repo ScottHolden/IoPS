@@ -1,15 +1,15 @@
-﻿using Microsoft.Azure.Devices.Client;
-using Newtonsoft.Json;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.Devices.Client;
+using Newtonsoft.Json;
+using Serilog;
 
 namespace IoPS
 {
-	public class IoTDevice : IDisposable
+	public class IoTHubDevice : IDisposable, IIoTDevice
 	{
 		private const string StatusChangeMessage = "IoT Hub {status}, {reason}";
 
@@ -19,9 +19,9 @@ namespace IoPS
 
 		private readonly Dictionary<string, MethodCallback> _handlers;
 
-		public IoTDevice(PSExecutor psExecutor, ConfigurationService config, ILogger logger)
+		public IoTHubDevice(PSExecutor psExecutor, ConfigurationService config, ILogger logger)
 		{
-			_logger = logger.ForContext<IoTDevice>();
+			_logger = logger.ForContext<IoTHubDevice>();
 			_psExecutor = psExecutor;
 
 			_handlers = new Dictionary<string, MethodCallback>
@@ -33,6 +33,13 @@ namespace IoPS
 			string connectionString = config.GetSetting("iothub");
 
 			_deviceClient = DeviceClient.CreateFromConnectionString(connectionString);
+
+			IRetryPolicy retryPolicy = new ExponentialBackoff(int.MaxValue,
+				TimeSpan.FromSeconds(1),
+				TimeSpan.FromSeconds(30),
+				TimeSpan.FromSeconds(1));
+
+			_deviceClient.SetRetryPolicy(retryPolicy);
 		}
 
 		public async Task ConnectAsync()
@@ -137,6 +144,19 @@ namespace IoPS
 			else
 			{
 				_logger.Information(StatusChangeMessage, status, reason);
+			}
+
+			if (status == ConnectionStatus.Disconnected &&
+				(reason == ConnectionStatusChangeReason.Retry_Expired ||
+				 reason == ConnectionStatusChangeReason.No_Network ||
+				 reason == ConnectionStatusChangeReason.Communication_Error ||
+				 reason == ConnectionStatusChangeReason.Client_Close
+				))
+			{
+				// Hard retry
+				_logger.Information("Attempting to reopen");
+
+				_deviceClient.OpenAsync().Wait();
 			}
 		}
 

@@ -9,9 +9,9 @@ namespace IoPS
 		public static readonly string FullServiceName = "IoT-PS-Service";
 
 		private readonly ILogger _logger;
-		private readonly IoTDevice _iotDevice;
+		private readonly IIoTDevice _iotDevice;
 
-		public IoTService(IoTDevice iotDevice, ILogger logger)
+		public IoTService(IIoTDevice iotDevice, ILogger logger)
 		{
 			_iotDevice = iotDevice;
 			_logger = logger.ForContext<IoTService>();

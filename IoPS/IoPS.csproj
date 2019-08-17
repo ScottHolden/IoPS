@@ -235,9 +235,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationService.cs" />
-    <Compile Include="IoTServices\IoTDevice.cs" />
+    <Compile Include="IoTServices\IIoTDevice.cs" />
+    <Compile Include="IoTServices\IoTHubDevice.cs" />
+    <Compile Include="PowershellServices\FileService\IPSFileService.cs" />
     <Compile Include="PowershellServices\ExecutionPolicyEnum.cs" />
     <Compile Include="PowershellServices\Models\PSExecutionResults.cs" />
+    <Compile Include="PowershellServices\FileService\PSFileService.cs" />
     <Compile Include="WindowsServices\IoTService.cs">
       <SubType>Component</SubType>
     </Compile>

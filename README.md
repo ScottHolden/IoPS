@@ -5,6 +5,9 @@ This is a quick proof a concept adapter for allowing IoT Hub to execute curated 
 ## To Run In Interactive Mode
 - Build the project (Clone, Build as Release) or grab a copy via the 'Releases' link above
 - Configure the `IoPS.exe.config` file with the target script path (`scriptpath`), and IoT Hub Device connection string (`iothub`)
+  - `scriptpath` can either be a single path, or a set of paths seperated by comma's
+    - `C:\scripts`
+    - `C:\scripts,C:\scripts2`
 - Run `IoPS.exe`, this will open up an interactive copy with logging
 
 ## To Install As A Service

@@ -47,18 +47,20 @@ namespace IoPS
 		{
 			ContainerBuilder builder = new ContainerBuilder();
 
-			builder.RegisterInstance(BuildLogger());
+			builder.Register(BuildLogger).As<ILogger>().SingleInstance();
 
 			builder.RegisterType<ConfigurationService>();
 			builder.RegisterType<PSExecutor>();
-			builder.RegisterType<IoTDevice>();
+			builder.RegisterType<PSFileService>().As<IPSFileService>();
+			builder.RegisterType<IoTHubDevice>().As<IIoTDevice>();
 			builder.RegisterType<IoTService>();
 
 			return builder.Build();
 		}
 
-		private static ILogger BuildLogger()
+		private static ILogger BuildLogger(IComponentContext arg)
 		{
+			// Setting up for application insights/external logging
 			return new LoggerConfiguration()
 					.Enrich.WithAssemblyName()
 					.Enrich.WithAssemblyVersion()
